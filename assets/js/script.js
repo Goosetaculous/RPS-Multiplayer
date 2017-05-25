@@ -8,7 +8,8 @@ $(document).ready(function(){
         storageBucket: "goosetaculous.appspot.com",
         messagingSenderId: "325415828804"
     };
-    var openSit
+    var openSit,turn=0
+
     firebase.initializeApp(config);
     var database = firebase.database();
     /**
@@ -18,7 +19,7 @@ $(document).ready(function(){
      */
     database.ref().on("value",function(snapshot) {
        // var sessions = Object.keys(snapshot.val()).length ? Object.keys(snapshot.val()).length : null
-       console.log("listening:", snapshot.val())
+       //console.log("listening:", snapshot.val())
         for (session in snapshot.val()) {
             if (openSession(session) ) {
                 openSit =openSession(session)  // Get each hash representing a session
@@ -35,32 +36,21 @@ $(document).ready(function(){
         }
     })
 
-
     database.ref(openSit).on("child_changed",function(data){
         if(data.val()[2]){
             $("#player2").html(data.val()[2].name)
         }
-        console.log("TURN", data.val().turn)
-        //SHOW RPS
-
-        //database.ref().child(openSit).update({"turn":changeTurn(data.val().turn)})
     })
 
+    
+    //Set the player choices
+    $(".rps1").on("click","button",function(){
+        database.ref(openSit+"/1/choice").set($(this).html())
 
-
-    /**
-     * Change who's turn is it
-     * @param turn
-     */
-
-    function changeTurn(turn){
-        var turn_to
-        if(turn == 1){
-            return 2
-        }else {
-            return 1
-        }
-    }
+    })
+    $(".rps2").on("click","button",function(){
+        database.ref(openSit+"/1/choice").set($(this).html())
+    })
 
     /**
      * Return the session that is open
@@ -89,17 +79,42 @@ $(document).ready(function(){
         var obj
         // ASSIGN PLAYER 1
         if (openSit === undefined && playerName){
+            sessionStorage.setItem("player",1)
             obj = {1: {"wins":0, "loses":0, "name":playerName,"choice":""}}
             database.ref().push(obj)
             $(".player-input").hide()
         }
         // ASSIGN PLAYER 2
         else if( playerName ){
+            sessionStorage.setItem("player",2)
             obj ={"wins":0,"loses":0,"name":playerName,"choice":""}
             database.ref(openSit+"/"+2).set(obj)
             database.ref(openSit+"/turn").set(1)
             $(".player-input").hide()
+
         }
+        database.ref(openSit+"/turn").on("value", function(data){
+            console.log("/turn", data.val())
+            console.log("Player", sessionStorage.getItem("player"))
+            if(data.val() == 1 && sessionStorage.getItem("player") == 1){
+                $(".rps1").show()
+                $(".rps2").hide()
+            }
+
+            if(data.val() == 2 && sessionStorage.getItem("player") == 1){
+                $(".rps1").hide()
+            }
+
+            if(data.val() == 1 && sessionStorage.getItem("player") == 2){
+                $(".rps2").hide()
+            }
+
+
+            if(data.val() == 2 && sessionStorage.getItem("player") == 2 ){
+                $(".rps2").show()
+                $(".rps1").hide()
+            }
+        })
     })
 });
 
