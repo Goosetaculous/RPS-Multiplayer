@@ -29,27 +29,40 @@ $(document).ready(function(){
     }, function(errorObject){
         console.log("error",errorObject)
     });
-
+    //Populate names
     database.ref(openSit).on("child_added",function(data){
         if(data.val()[1]){
             $("#player1").html(data.val()[1].name)
         }
     })
-
     database.ref(openSit).on("child_changed",function(data){
         if(data.val()[2]){
             $("#player2").html(data.val()[2].name)
         }
     })
+    /**
+     * Change the Player turn
+     */
+    function changeTurn(){
+        database.ref(openSit+"/turn").once("value", function(data){
+            if(  data.val() === 1){
+                database.ref(openSit+"/turn").set(2)
+            }else{
+                database.ref(openSit+"/turn").set(1)
+            }
+        })
+    }
 
-    
+
     //Set the player choices
     $(".rps1").on("click","button",function(){
         database.ref(openSit+"/1/choice").set($(this).html())
+        changeTurn()
 
     })
     $(".rps2").on("click","button",function(){
-        database.ref(openSit+"/1/choice").set($(this).html())
+        database.ref(openSit+"/2/choice").set($(this).html())
+        changeTurn()
     })
 
     /**
@@ -100,7 +113,6 @@ $(document).ready(function(){
                 $(".rps1").show()
                 $(".rps2").hide()
             }
-
             if(data.val() == 2 && sessionStorage.getItem("player") == 1){
                 $(".rps1").hide()
             }
@@ -108,8 +120,6 @@ $(document).ready(function(){
             if(data.val() == 1 && sessionStorage.getItem("player") == 2){
                 $(".rps2").hide()
             }
-
-
             if(data.val() == 2 && sessionStorage.getItem("player") == 2 ){
                 $(".rps2").show()
                 $(".rps1").hide()
