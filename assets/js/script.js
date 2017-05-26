@@ -8,7 +8,7 @@ $(document).ready(function(){
         storageBucket: "goosetaculous.appspot.com",
         messagingSenderId: "325415828804"
     };
-    var openSit,turn=0,choice1,choice2,gameResult
+    var openSit,choice1,choice2
 
 
     firebase.initializeApp(config);
@@ -30,11 +30,14 @@ $(document).ready(function(){
             database.ref(openSit+"/2/choice").once("value",function(c2){
                 choice2 = c2.val()
             })
-            if(choice2) {
+
+            if (choice1 && choice2){
                 eveluateWinner(choice1,choice2)
+                console.log( "winner is ", eveluateWinner(choice1,choice2) )
+                $(".rps1").hide()
+                setTimeout( clearResults,5000)
             }
         }
-
         for (session in snapshot.val()) {
             if (openSession(session) ) {
                 openSit =openSession(session)  // Get each hash representing a session
@@ -44,33 +47,48 @@ $(document).ready(function(){
     }, function(errorObject){
         console.log("error",errorObject)
     });
-    //Populate names
+    /**
+     * Clear the choices after 3 seconds
+     */
+    function clearResults() {
+        database.ref(openSit+"/1/choice").set("")
+        database.ref(openSit+"/2/choice").set("")
+        $(".game-result").html("")
+        if( sessionStorage.getItem("player") == 1){
+            $(".rps1").show()
+        }
+    }
+    /**
+     * Populate Player 1 Name
+     */
     database.ref(openSit).on("child_added",function(data){
         if(data.val()[1]){
             $("#player1").html(data.val()[1].name)
         }
     })
+    /**
+     * Populate Player 2 Name
+     */
     database.ref(openSit).on("child_changed",function(data){
         if(data.val()[2]){
             $("#player2").html(data.val()[2].name)
         }
     })
 
-    //Set the player choices
+    /**
+     *Set player 1 choice
+     */
     $(".rps1").on("click","button",function(){
         database.ref(openSit+"/1/choice").set($(this).attr("val"))
         changeTurn()
-
     })
+    /**
+     *Set player 2 choice
+     */
     $(".rps2").on("click","button",function(){
         database.ref(openSit+"/2/choice").set($(this).attr("val"))
-        // database.ref(openSit+"/turn").on("value",function (data) {
-        //     turn=data.val()
-        // })
         changeTurn()
     })
-
-
     /**
      * Change the Player turn
      */
@@ -78,10 +96,8 @@ $(document).ready(function(){
         database.ref(openSit+"/turn").once("value", function(data){
             if(  data.val() === 1){
                 database.ref(openSit+"/turn").set(2)
-                turn = 2
             }else{
                 database.ref(openSit+"/turn").set(1)
-                turn = 1
             }
         })
     }
@@ -89,16 +105,25 @@ $(document).ready(function(){
      * Evaluate Winner
      */
     function eveluateWinner(choice1,choice2){
-        console.log(choice1,choice2)
+        var gameResult,winner
+
         if( choice1 == choice2){
-            $(".game-result").html("tied")
+            gameResult = "tied"
         }
         else if ((choice1 - choice2 + 3) % 3 == 1){
-            $(".game-result").html("Player 1 Wins")
+            database.ref(openSit+"/1/name").once("value", function(player){
+                gameResult = player.val() + " wins"
+            })
+            winner = 1
         }
         else {
-            $(".game-result").html("Player 2 Wins")
+            database.ref(openSit+"/2/name").once("value", function(player){
+                gameResult = player.val() + " wins"
+            })
+            winner = 2
         }
+        $(".game-result").html(gameResult)
+        return winner
     }
 
     /**
