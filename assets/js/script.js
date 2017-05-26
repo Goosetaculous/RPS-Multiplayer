@@ -8,18 +8,33 @@ $(document).ready(function(){
         storageBucket: "goosetaculous.appspot.com",
         messagingSenderId: "325415828804"
     };
-    var openSit,turn=0
+    var openSit,turn=0,choice1,choice2,gameResult
+
 
     firebase.initializeApp(config);
     var database = firebase.database();
     /**
      * This always listens
      * Get the lenght of the WHOLE db. //FOR FUN
-     * Determine which session is open and put it on openSession
+     * Determine which session is open and put it on openSit
      */
     database.ref().on("value",function(snapshot) {
        // var sessions = Object.keys(snapshot.val()).length ? Object.keys(snapshot.val()).length : null
-       //console.log("listening:", snapshot.val())
+        if(openSit){
+            database.ref(openSit+"/turn").once("value",function (data) {
+                turn = data.val()
+            })
+            database.ref(openSit+"/1/choice").once("value",function(c1){
+               choice1 = c1.val()
+            })
+            database.ref(openSit+"/2/choice").once("value",function(c2){
+                choice2 = c2.val()
+            })
+            if(choice2) {
+                eveluateWinner(choice1,choice2)
+            }
+        }
+
         for (session in snapshot.val()) {
             if (openSession(session) ) {
                 openSit =openSession(session)  // Get each hash representing a session
@@ -40,6 +55,22 @@ $(document).ready(function(){
             $("#player2").html(data.val()[2].name)
         }
     })
+
+    //Set the player choices
+    $(".rps1").on("click","button",function(){
+        database.ref(openSit+"/1/choice").set($(this).attr("val"))
+        changeTurn()
+
+    })
+    $(".rps2").on("click","button",function(){
+        database.ref(openSit+"/2/choice").set($(this).attr("val"))
+        // database.ref(openSit+"/turn").on("value",function (data) {
+        //     turn=data.val()
+        // })
+        changeTurn()
+    })
+
+
     /**
      * Change the Player turn
      */
@@ -47,23 +78,28 @@ $(document).ready(function(){
         database.ref(openSit+"/turn").once("value", function(data){
             if(  data.val() === 1){
                 database.ref(openSit+"/turn").set(2)
+                turn = 2
             }else{
                 database.ref(openSit+"/turn").set(1)
+                turn = 1
             }
         })
     }
-
-
-    //Set the player choices
-    $(".rps1").on("click","button",function(){
-        database.ref(openSit+"/1/choice").set($(this).html())
-        changeTurn()
-
-    })
-    $(".rps2").on("click","button",function(){
-        database.ref(openSit+"/2/choice").set($(this).html())
-        changeTurn()
-    })
+    /**
+     * Evaluate Winner
+     */
+    function eveluateWinner(choice1,choice2){
+        console.log(choice1,choice2)
+        if( choice1 == choice2){
+            $(".game-result").html("tied")
+        }
+        else if ((choice1 - choice2 + 3) % 3 == 1){
+            $(".game-result").html("Player 1 Wins")
+        }
+        else {
+            $(".game-result").html("Player 2 Wins")
+        }
+    }
 
     /**
      * Return the session that is open
@@ -104,11 +140,8 @@ $(document).ready(function(){
             database.ref(openSit+"/"+2).set(obj)
             database.ref(openSit+"/turn").set(1)
             $(".player-input").hide()
-
         }
         database.ref(openSit+"/turn").on("value", function(data){
-            console.log("/turn", data.val())
-            console.log("Player", sessionStorage.getItem("player"))
             if(data.val() == 1 && sessionStorage.getItem("player") == 1){
                 $(".rps1").show()
                 $(".rps2").hide()
@@ -116,7 +149,6 @@ $(document).ready(function(){
             if(data.val() == 2 && sessionStorage.getItem("player") == 1){
                 $(".rps1").hide()
             }
-
             if(data.val() == 1 && sessionStorage.getItem("player") == 2){
                 $(".rps2").hide()
             }
