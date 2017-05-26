@@ -32,10 +32,10 @@ $(document).ready(function(){
             })
 
             if (choice1 && choice2){
-                eveluateWinner(choice1,choice2)
-                console.log( "winner is ", eveluateWinner(choice1,choice2) )
+                var winner = eveluateWinner(choice1,choice2)
+
                 $(".rps1").hide()
-                setTimeout( clearResults,5000)
+                setTimeout( clearResults(winner),5000)
             }
         }
         for (session in snapshot.val()) {
@@ -48,11 +48,26 @@ $(document).ready(function(){
         console.log("error",errorObject)
     });
     /**
-     * Clear the choices after 3 seconds
+     * Clear the choices after 5 seconds
      */
-    function clearResults() {
+    function clearResults(winner) {
+        var wins
+        //clear all the choices
         database.ref(openSit+"/1/choice").set("")
         database.ref(openSit+"/2/choice").set("")
+        //update the win lose records
+        if ( winner == 1 ){
+            database.ref(openSit+"/1/wins").once("value", function(data){
+                wins =  data.val()
+            })
+            wins++
+            database.ref(openSit+"/1/wins").set(wins)
+        }
+
+
+
+
+
         $(".game-result").html("")
         if( sessionStorage.getItem("player") == 1){
             $(".rps1").show()
