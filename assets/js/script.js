@@ -12,6 +12,7 @@ $(document).ready(function(){
     var name1,name2
     var p1wins=0,p1lose=0
     var p2wins=0,p2lose=0
+    var p1picks,p2picks
 
     firebase.initializeApp(config);
     var database = firebase.database();
@@ -28,32 +29,36 @@ $(document).ready(function(){
                 $("#talk-shit").text(conversation + chat.val()+ " <--" + name1)
                 scrollBottom()
             })
-
             database.ref(openSit+"/2/msg").on("value",function (chat) {
                 var conversation = $("#talk-shit").val().trim() + "\n"
                 $("#talk-shit").text(conversation + chat.val() + " <--" + name2)
                 scrollBottom()
-
             })
-
-
             database.ref(openSit+"/1/wins").once("value",function(data){
                 $("#p1-wins").html(data.val())
             })
             database.ref(openSit+"/1/loses").once("value",function(data){
                 $("#p1-losses").html(data.val())
             })
-
             database.ref(openSit+"/2/wins").once("value",function(data){
                 $("#p2-wins").html(data.val())
             })
             database.ref(openSit+"/2/loses").once("value",function(data){
                 $("#p2-losses").html(data.val())
             })
-
-
             database.ref(openSit+"/turn").once("value",function (data) {
                 turn = data.val()
+                if (turn == 1){
+                    $(".left-player").css("border-style", "solid");
+                    $(".right-player").css("border-style","")
+
+                }else {
+
+                    $(".right-player").css("border-style", "solid");
+                    $(".left-player").css("border-style","")
+
+                }
+
             })
             database.ref(openSit+"/1/choice").once("value",function(c1){
                choice1 = c1.val()
@@ -62,14 +67,17 @@ $(document).ready(function(){
                 choice2 = c2.val()
             })
             if (choice1 && choice2 && turn == 1){
+                console.log(p1picks)
+                $("#p1picks").html("ters")
+                 $("#p2picks").html("SETES")
+
+
                 winner = eveluateWinner(choice1,choice2)
+                console.log(choice1)
 
                 $(".rps1").hide()
                 setTimeout( clearResults,2000,winner)
-
             }
-
-
         }
         for (session in snapshot.val()) {
             if (openSession(session) ) {
@@ -86,8 +94,6 @@ $(document).ready(function(){
             scrollTop:$("#talk-shit")[0].scrollHeight - $("#talk-shit").height()
         },200)
     }
-
-
     /**
      * Clear the choices after 3 seconds
      */
@@ -105,18 +111,11 @@ $(document).ready(function(){
             p2wins++
             p1lose++
         }
-        console.log(p1wins,p1lose)
-        console.log(p2wins,p2lose)
         database.ref(openSit+"/1/wins").set(p1wins)
         database.ref(openSit+"/1/loses").set(p1lose)
         database.ref(openSit+"/2/wins").set(p2wins)
         database.ref(openSit+"/2/loses").set(p2lose)
     }
-
-
-
-
-
     /**
      * Populate Player 1 Name
      */
@@ -140,6 +139,8 @@ $(document).ready(function(){
      */
     $(".rps1").on("click","button",function(){
         database.ref(openSit+"/1/choice").set($(this).attr("val"))
+        //console.log($(this).text())
+        p1picks=$(this).text()
         changeTurn()
     })
     /**
@@ -147,6 +148,7 @@ $(document).ready(function(){
      */
     $(".rps2").on("click","button",function(){
         database.ref(openSit+"/2/choice").set($(this).attr("val"))
+        p2picks=$(this).text()
         changeTurn()
     })
     /**
@@ -182,6 +184,8 @@ $(document).ready(function(){
             winner = 2
         }
         $(".game-result").html(gameResult)
+        $("#p1picks").html("")
+        $("#p2picks").html("")
         return winner
     }
     /**
@@ -206,16 +210,9 @@ $(document).ready(function(){
 
     $("#send_msg").on("click",function(){
         var chat_msg = $(".msg").val().trim()
-
         database.ref(openSit+"/"+sessionStorage.getItem("player")+"msg").set(chat_msg)
         $(".msg").val("")
-
-
-
-        alert(chat_msg)
     })
-
-
     /**
      * Grab the player name
      */
@@ -224,7 +221,6 @@ $(document).ready(function(){
         var obj
         // ASSIGN PLAYER 1
         if (openSit === undefined && playerName){
-
             sessionStorage.setItem("player",1)
             obj = {1: {"wins":0, "loses":0, "name":playerName,"choice":"","msg":""}}
             database.ref().push(obj)

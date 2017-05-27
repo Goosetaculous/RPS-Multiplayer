@@ -20,9 +20,6 @@
         <div class="jumbotron">ROCK PAPER SCISSORS</div>
     </div>
 </div>
-<div class="row score-holder">
-
-</div>
 <div class="row">
     <div class="container player-input">
         <div class="col-md-12">
@@ -32,10 +29,11 @@
         </div>
     </div>
 </div>
-<div class="row">
+<div class="row ">
     <div class= "container">
         <div class="col-md-4 left-player">
             <div id="player1"></div>
+            <div id="p1picks"></div>
             <div class="rps1">
                 <button val="0">Rock</button>
                 <button val="1">Paper</button>
@@ -47,6 +45,7 @@
         <div class="col-md-4 game-result">result</div>
         <div class="col-md-4 right-player">
             <div id="player2"></div>
+            <div id="p2picks"></div>
             <div class="rps2">
                 <button val="0">Rock</button>
                 <button val="1">Paper</button>
@@ -57,14 +56,25 @@
         </div>
      </div>
 </div>
+<br>
 <div class="row">
     <div class="container">
-        <textarea rows="4" cols="50" id="talk-shit">
-
-        </textarea>
-        <input class="msg" type="text">
-        <button id="send_msg">send</button>
-
+        <div class="col-md-12">
+            <textarea rows="4" cols="50" id="talk-shit">
+            </textarea>
+        </div>
     </div>
+
 </div>
+
+<div class="row">
+    <div class="container">
+        <div class="col-md-12">
+            <input class="msg" type="text">
+            <button class="btn" id="send_msg">send</button>
+        </div>
+    </div>
+
+</div>
+
 </body>
