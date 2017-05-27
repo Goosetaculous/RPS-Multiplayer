@@ -1,4 +1,4 @@
-.rps1, .rps2 {
+.rps1, .rps2, .chat {
     display: none;
 }
 
@@ -16,4 +16,3 @@
     height: 30px;
     background-color: aliceblue;
 }
-

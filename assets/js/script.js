@@ -14,6 +14,8 @@ $(document).ready(function(){
     var p2wins=0,p2lose=0
     var p1picks,p2picks
 
+    var chat1,chat2
+
     firebase.initializeApp(config);
     var database = firebase.database();
     /**
@@ -23,17 +25,22 @@ $(document).ready(function(){
      */
     database.ref().on("value",function(snapshot) {
        // var sessions = Object.keys(snapshot.val()).length ? Object.keys(snapshot.val()).length : null
-        if(openSit){
+        if(openSit && name1 && name2){
+            $(".chat").show()
+
+
+
+
+
             database.ref(openSit+"/1/msg").on("value",function (chat) {
+                console.log(":",chat.val())
                 var conversation = $("#talk-shit").val().trim() + "\n"
                 $("#talk-shit").text(conversation + chat.val()+ " <--" + name1)
                 scrollBottom()
             })
-            database.ref(openSit+"/2/msg").on("value",function (chat) {
-                var conversation = $("#talk-shit").val().trim() + "\n"
-                $("#talk-shit").text(conversation + chat.val() + " <--" + name2)
-                scrollBottom()
-            })
+
+
+
             database.ref(openSit+"/1/wins").once("value",function(data){
                 $("#p1-wins").html(data.val())
             })
@@ -51,14 +58,10 @@ $(document).ready(function(){
                 if (turn == 1){
                     $(".left-player").css("border-style", "solid");
                     $(".right-player").css("border-style","")
-
                 }else if (turn == 2) {
-
                     $(".right-player").css("border-style", "solid");
                     $(".left-player").css("border-style","")
-
                 }
-
             })
             database.ref(openSit+"/1/choice").once("value",function(c1){
                choice1 = c1.val()
@@ -68,6 +71,9 @@ $(document).ready(function(){
             })
             if (choice1 && choice2 && turn == 1){
                 winner = eveluateWinner(choice1,choice2)
+                $("#p1picks").html(rpsVAL(choice1))
+                $("#p2picks").html(rpsVAL(choice2))
+
                 $(".rps1").hide()
                 setTimeout( clearResults,2000,winner)
             }
@@ -85,7 +91,28 @@ $(document).ready(function(){
     function scrollBottom(){
         $("#talk-shit").animate({
             scrollTop:$("#talk-shit")[0].scrollHeight - $("#talk-shit").height()
-        },200)
+        },1)
+    }
+
+    /**
+     * Evaluate the value to RPS
+     * @param val
+     * @returns {*}
+     */
+    function rpsVAL(val){
+        var ret
+        switch(val){
+            case 0:
+                ret = "Rock";
+                break;
+            case 1:
+                ret = "Paper";
+                break;
+            case 2:
+                ret = "Scisor";
+                break;
+        }
+        return ret
     }
     /**
      * Clear the choices after 3 seconds
@@ -109,6 +136,22 @@ $(document).ready(function(){
         database.ref(openSit+"/2/wins").set(p2wins)
         database.ref(openSit+"/2/loses").set(p2lose)
     }
+
+
+    // database.ref(openSit+"/1/msg").on("child_changed",function (chat) {
+    //     console.log(":",chat.val())
+    //     // var conversation = $("#talk-shit").val().trim() + "\n"
+    //     // $("#talk-shit").text(conversation + chat.val()+ " <--" + name1)
+    //     // scrollBottom()
+    // })
+    // database.ref(openSit+"/2/msg").on("child_changed",function (chat) {
+    //     var conversation = $("#talk-shit").val().trim() + "\n"
+    //     $("#talk-shit").text(conversation + chat.val() + " <--" + name2)
+    //     scrollBottom()
+    // })
+
+
+
     /**
      * Populate Player 1 Name
      */
@@ -201,9 +244,12 @@ $(document).ready(function(){
         return session
     }
 
+    /**
+     * Send the msg state of a player
+     */
     $("#send_msg").on("click",function(){
         var chat_msg = $(".msg").val().trim()
-        database.ref(openSit+"/"+sessionStorage.getItem("player")+"msg").set(chat_msg)
+        database.ref(openSit+"/"+sessionStorage.getItem("player")+"/msg").set(chat_msg)
         $(".msg").val("")
     })
     /**
