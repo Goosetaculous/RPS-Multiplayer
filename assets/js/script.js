@@ -52,7 +52,7 @@ $(document).ready(function(){
                     $(".left-player").css("border-style", "solid");
                     $(".right-player").css("border-style","")
 
-                }else {
+                }else if (turn == 2) {
 
                     $(".right-player").css("border-style", "solid");
                     $(".left-player").css("border-style","")
@@ -67,14 +67,7 @@ $(document).ready(function(){
                 choice2 = c2.val()
             })
             if (choice1 && choice2 && turn == 1){
-                console.log(p1picks)
-                $("#p1picks").html("ters")
-                 $("#p2picks").html("SETES")
-
-
                 winner = eveluateWinner(choice1,choice2)
-                console.log(choice1)
-
                 $(".rps1").hide()
                 setTimeout( clearResults,2000,winner)
             }
@@ -183,7 +176,7 @@ $(document).ready(function(){
             })
             winner = 2
         }
-        $(".game-result").html(gameResult)
+        $(".game-result").html("<h3>"+gameResult+"</h3>")
         $("#p1picks").html("")
         $("#p2picks").html("")
         return winner
@@ -228,7 +221,6 @@ $(document).ready(function(){
         }
         // ASSIGN PLAYER 2
         else if( playerName ){
-
             sessionStorage.setItem("player",2)
             obj ={"wins":0,"loses":0,"name":playerName,"choice":"","msg":""}
             database.ref(openSit+"/"+2).set(obj)
