@@ -13,9 +13,6 @@ $(document).ready(function(){
     var p1wins=0,p1lose=0
     var p2wins=0,p2lose=0
     var p1picks,p2picks
-
-    var chat1,chat2
-
     firebase.initializeApp(config);
     var database = firebase.database();
     /**
@@ -27,20 +24,22 @@ $(document).ready(function(){
        // var sessions = Object.keys(snapshot.val()).length ? Object.keys(snapshot.val()).length : null
         if(openSit && name1 && name2){
             $(".chat").show()
-
-
-
-
-
-            database.ref(openSit+"/1/msg").on("value",function (chat) {
+            database.ref(openSit+"/1/msg").once("value",function (chat) {
                 console.log(":",chat.val())
                 var conversation = $("#talk-shit").val().trim() + "\n"
-                $("#talk-shit").text(conversation + chat.val()+ " <--" + name1)
+                if(chat.val() !== ""){
+                    $("#talk-shit").text(name1 +" says: "+ conversation + chat.val()+"\n")
+                }
                 scrollBottom()
             })
-
-
-
+            database.ref(openSit+"/2/msg").once("value",function (chat) {
+                console.log(":",chat.val())
+                var conversation = $("#talk-shit").val().trim() + "\n"
+                if(chat.val() !== ""){
+                    $("#talk-shit").text(name2+ " says: "+conversation + chat.val()+"\n" )
+                }
+                scrollBottom()
+            })
             database.ref(openSit+"/1/wins").once("value",function(data){
                 $("#p1-wins").html(data.val())
             })
@@ -138,20 +137,6 @@ $(document).ready(function(){
     }
 
 
-    // database.ref(openSit+"/1/msg").on("child_changed",function (chat) {
-    //     console.log(":",chat.val())
-    //     // var conversation = $("#talk-shit").val().trim() + "\n"
-    //     // $("#talk-shit").text(conversation + chat.val()+ " <--" + name1)
-    //     // scrollBottom()
-    // })
-    // database.ref(openSit+"/2/msg").on("child_changed",function (chat) {
-    //     var conversation = $("#talk-shit").val().trim() + "\n"
-    //     $("#talk-shit").text(conversation + chat.val() + " <--" + name2)
-    //     scrollBottom()
-    // })
-
-
-
     /**
      * Populate Player 1 Name
      */
@@ -175,7 +160,7 @@ $(document).ready(function(){
      */
     $(".rps1").on("click","button",function(){
         database.ref(openSit+"/1/choice").set($(this).attr("val"))
-        //console.log($(this).text())
+
         p1picks=$(this).text()
         changeTurn()
     })
